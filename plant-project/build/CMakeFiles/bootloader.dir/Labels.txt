@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/CMakeFiles/bootloader
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/CMakeFiles/bootloader.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/CMakeFiles/bootloader-complete.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

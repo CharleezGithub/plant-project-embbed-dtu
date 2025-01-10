@@ -1,104 +1,88 @@
-/* Blink Example
+#include "freertos/FreeRTOS.h" // FreeRTOS base functionality
+#include "freertos/task.h"     // Task creation and delay functions
+#include "driver/gpio.h"       // GPIO control and configuration
+#include "esp_system.h"        // ESP32 system-related functions
+#include "esp_log.h"           // Logging utilities
+#include "esp_timer.h"         // High-resolution timer API
+#include "sdkconfig.h"         // Project configuration
 
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
+#define BTN_PIN 2
+#define LED_PIN 3
 
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/gpio.h"
-#include "esp_log.h"
-#include "led_strip.h"
-#include "sdkconfig.h"
+#define ESP_INTR_FLAG_DEFAULT 0
 
-static const char *TAG = "example";
+static TaskHandle_t task_handle = NULL;
+static const char *TAG = "GPIO_INT";
 
-/* Use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
-   or you can edit the following line and set a number here.
-*/
-#define BLINK_GPIO CONFIG_BLINK_GPIO
-
-static uint8_t s_led_state = 0;
-
-#ifdef CONFIG_BLINK_LED_STRIP
-
-static led_strip_handle_t led_strip;
-
-static void blink_led(void)
+static void IRAM_ATTR gpio_button_intr(void *arg)
 {
-    /* If the addressable LED is enabled */
-    if (s_led_state) {
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-        led_strip_set_pixel(led_strip, 0, 16, 16, 16);
-        /* Refresh the strip to send data */
-        led_strip_refresh(led_strip);
-    } else {
-        /* Set all LED off to clear all pixels */
-        led_strip_clear(led_strip);
+    static uint32_t last_isr_time = 0;
+    uint32_t current_isr_time = esp_timer_get_time();
+
+    // Debounce: Check if the ISR is triggered within 200ms of the last trigger
+    if (current_isr_time - last_isr_time > 200000)
+    {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xTaskNotifyFromISR(task_handle, 0, eNoAction, &xHigherPriorityTaskWoken);
+        if (xHigherPriorityTaskWoken)
+        {
+            portYIELD_FROM_ISR();
+        }
+    }
+    last_isr_time = current_isr_time;
+}
+
+void led_blink_task(void *arg)
+{
+    while (1)
+    {
+        // Wait for notification from ISR
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        ESP_LOGI(TAG, "Button pressed! Starting LED blink.");
+        // Perform the LED blinking
+        for (int i = 0; i < 5; i++)
+        {
+            gpio_set_level(LED_PIN, i % 2);
+            vTaskDelay(300 / portTICK_PERIOD_MS);
+        }
+        gpio_set_level(LED_PIN, 0); // Turn off LED after blinking
     }
 }
 
-static void configure_led(void)
+void app_main()
 {
-    ESP_LOGI(TAG, "Example configured to blink addressable LED!");
-    /* LED strip initialization with the GPIO and pixels number*/
-    led_strip_config_t strip_config = {
-        .strip_gpio_num = BLINK_GPIO,
-        .max_leds = 1, // at least one LED on board
+    // Configure the GPIO pin as an input
+    gpio_config_t io_conf = {
+        .intr_type = GPIO_INTR_NEGEDGE,    // Interrupt on falling edge
+        .mode = GPIO_MODE_INPUT,           // Set as input mode
+        .pin_bit_mask = (1ULL << BTN_PIN), // Pin bitmask
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .pull_up_en = GPIO_PULLUP_ENABLE, // Enable pull-up resistor
     };
-#if CONFIG_BLINK_LED_STRIP_BACKEND_RMT
-    led_strip_rmt_config_t rmt_config = {
-        .resolution_hz = 10 * 1000 * 1000, // 10MHz
-        .flags.with_dma = false,
+    gpio_config(&io_conf);
+
+    gpio_config_t led_conf = {
+        .intr_type = GPIO_INTR_DISABLE,    // No interrupt for LED
+        .mode = GPIO_MODE_OUTPUT,          // Set as output mode
+        .pin_bit_mask = (1ULL << LED_PIN), // Pin bitmask for LED
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
     };
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
-#elif CONFIG_BLINK_LED_STRIP_BACKEND_SPI
-    led_strip_spi_config_t spi_config = {
-        .spi_bus = SPI2_HOST,
-        .flags.with_dma = true,
-    };
-    ESP_ERROR_CHECK(led_strip_new_spi_device(&strip_config, &spi_config, &led_strip));
-#else
-#error "unsupported LED strip backend"
-#endif
-    /* Set all LED off to clear all pixels */
-    led_strip_clear(led_strip);
-}
+    gpio_config(&led_conf);
 
-#elif CONFIG_BLINK_LED_GPIO
+    // Install GPIO ISR service
+    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 
-static void blink_led(void)
-{
-    /* Set the GPIO level according to the state (LOW or HIGH)*/
-    gpio_set_level(BLINK_GPIO, s_led_state);
-}
+    // Hook the ISR handler for the specific pin
+    gpio_isr_handler_add(BTN_PIN, gpio_button_intr, (void *)BTN_PIN);
 
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
-    gpio_reset_pin(BLINK_GPIO);
-    /* Set the GPIO as a push/pull output */
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-}
+    xTaskCreate(led_blink_task, "led_blink_task", 2048, NULL, 10, &task_handle);
 
-#else
-#error "unsupported LED type"
-#endif
+    ESP_LOGI(TAG, "GPIO interrupt example initialized.");
 
-void app_main(void)
-{
-
-    /* Configure the peripheral according to the LED type */
-    configure_led();
-
-    while (1) {
-        ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-        blink_led();
-        /* Toggle the LED state */
-        s_led_state = !s_led_state;
-        vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
+    while (1)
+    {
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Main loop doing nothing
     }
 }
