@@ -54,3 +54,4 @@ dkms.conf
 sdkconfig
 sdkconfig.old
 /plant-project/build
+/plant-project/.vscode
