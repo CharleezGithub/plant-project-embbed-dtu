@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "plant-project",
-    "project_version":    "2a02ce3-dirty",
+    "project_version":    "1a9ec1b-dirty",
     "project_path":       "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project",
     "idf_path":           "C:/Users/Alex/esp/v5.4/esp-idf",
     "build_dir":          "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build",
@@ -1210,7 +1210,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [ "espressif__led_strip" ],
             "file": "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/main/e_11.c", "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/main/blink_example_main.c" ],
+            "sources": [ "C:/Users/Alex/Desktop/VSCode/DTU/embedded_systems_programming/plant-project/plant-project-embbed-dtu/plant-project/main/blink_example_main.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
