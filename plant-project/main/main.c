@@ -5,7 +5,12 @@
 #include "esp_log.h"           // Logging utilities
 #include "esp_timer.h"         // High-resolution timer API
 #include "sdkconfig.h"         // Project configuration
+#include "sensor_tasks/display.c"
+#include "libs/ssd1306/ssd1306.h"
 
 void app_main()
 {
+    initialize_display();
+
+    printf("Display Initialized!\n");
 }
